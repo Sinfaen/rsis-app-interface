@@ -14,16 +14,31 @@ pub struct BufferStruct {
     pub size : usize,
 }
 
-pub type BoolCallback = unsafe extern "C" fn(obj : *mut c_void) -> bool;
+#[repr(u32)]
+pub enum ConfigStatus {
+    OK,
+    ERROR,
+    INTERFACEUPDATE, // Notify the caller that the public interface has changed
+}
+
+#[repr(u32)]
+pub enum RuntimeStatus {
+    OK,
+    ERROR,
+}
+
+pub type ConfigStatusCallback  = unsafe extern "C" fn(obj : *mut c_void) -> ConfigStatus;
+pub type RuntimeStatusCallback = unsafe extern "C" fn(obj : *mut c_void) -> RuntimeStatus;
+
 pub type VoidCallback = unsafe extern "C" fn(obj : *mut c_void);
 pub type SizeCallback = unsafe extern "C" fn(size : usize) -> *mut u8;
 
 pub trait BaseModel {
-    fn config(&mut self) -> bool;
-    fn init(&mut self, interface : &mut Box<dyn Framework>) -> bool;
-    fn step(&mut self) -> bool;
-    fn pause(&mut self) -> bool;
-    fn stop(&mut self) -> bool;
+    fn config(&mut self) -> ConfigStatus;
+    fn init(&mut self, interface : &mut Box<dyn Framework>) -> RuntimeStatus;
+    fn step(&mut self) -> RuntimeStatus;
+    fn pause(&mut self) -> RuntimeStatus;
+    fn stop(&mut self) -> RuntimeStatus;
 
     fn msg_get(&self, id : BufferStruct, cb : SizeCallback) -> u32;
     fn msg_set(&mut self, id : BufferStruct, data : BufferStruct) -> u32;
@@ -34,28 +49,28 @@ pub trait BaseModel {
 /// Used for wrapping models that come from other language, like C++ and Fortran
 pub struct BaseModelExternal {
     pub obj : *mut c_void,
-    pub config_fn : BoolCallback,
-    pub init_fn : BoolCallback,
-    pub step_fn : BoolCallback,
-    pub pause_fn : BoolCallback,
-    pub stop_fn : BoolCallback,
+    pub config_fn : ConfigStatusCallback,
+    pub init_fn : RuntimeStatusCallback,
+    pub step_fn : RuntimeStatusCallback,
+    pub pause_fn : RuntimeStatusCallback,
+    pub stop_fn : RuntimeStatusCallback,
     pub destructor_fn : VoidCallback,
 }
 
 impl BaseModel for BaseModelExternal {
-    fn config(&mut self) -> bool {
+    fn config(&mut self) -> ConfigStatus {
         unsafe { (self.config_fn)(self.obj) }
     }
-    fn init(&mut self, _interface : &mut Box<dyn Framework>) -> bool {
+    fn init(&mut self, _interface : &mut Box<dyn Framework>) -> RuntimeStatus {
         unsafe { (self.init_fn)(self.obj) }
     }
-    fn step(&mut self) ->  bool {
+    fn step(&mut self) -> RuntimeStatus {
         unsafe { (self.step_fn)(self.obj) }
     }
-    fn pause(&mut self) -> bool {
+    fn pause(&mut self) -> RuntimeStatus {
         unsafe { (self.pause_fn)(self.obj) }
     }
-    fn stop(&mut self) -> bool {
+    fn stop(&mut self) -> RuntimeStatus {
         unsafe { (self.stop_fn)(self.obj) }
     }
     fn msg_get(&self, _id : BufferStruct, _cb : SizeCallback) -> u32 {
