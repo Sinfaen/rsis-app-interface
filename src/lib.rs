@@ -36,7 +36,7 @@ pub type SizeCallback = unsafe extern "C" fn(size : usize) -> *mut u8;
 pub trait BaseModel {
     fn config(&mut self) -> ConfigStatus;
     fn init(&mut self, interface : &mut Box<dyn Framework>) -> RuntimeStatus;
-    fn step(&mut self) -> RuntimeStatus;
+    fn step(&mut self, interface : &mut Box<dyn Framework>) -> RuntimeStatus;
     fn pause(&mut self) -> RuntimeStatus;
     fn stop(&mut self) -> RuntimeStatus;
 
@@ -64,7 +64,7 @@ impl BaseModel for BaseModelExternal {
     fn init(&mut self, _interface : &mut Box<dyn Framework>) -> RuntimeStatus {
         unsafe { (self.init_fn)(self.obj) }
     }
-    fn step(&mut self) -> RuntimeStatus {
+    fn step(&mut self, _interface : &mut Box<dyn Framework>) -> RuntimeStatus {
         unsafe { (self.step_fn)(self.obj) }
     }
     fn pause(&mut self) -> RuntimeStatus {
