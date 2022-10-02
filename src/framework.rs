@@ -13,6 +13,8 @@ pub trait ChannelTx {
 }
 
 pub trait Framework : Send {
+    fn get_simtick(&self) -> i64;
+    fn get_simtime(&self) -> f64;
     fn request_rx(&mut self, id : i64) -> Option<Box<dyn ChannelRx>>;
     fn request_tx(&mut self, id : i64) -> Box<dyn ChannelTx>;
 }
