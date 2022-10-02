@@ -1,5 +1,6 @@
 extern crate data_buffer;
 
+use std::any::Any;
 use data_buffer::DataBuffer;
 use std::sync::{mpsc::RecvError, mpsc::TryRecvError, mpsc::SendError};
 
@@ -13,6 +14,7 @@ pub trait ChannelTx {
 }
 
 pub trait Framework : Send {
+    fn as_any(&self) -> &dyn Any;
     fn get_simtick(&self) -> i64;
     fn get_simtime(&self) -> f64;
     fn request_rx(&mut self, id : i64) -> Option<Box<dyn ChannelRx>>;
