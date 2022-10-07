@@ -25,6 +25,7 @@ pub enum ConfigStatus {
 pub enum RuntimeStatus {
     OK,
     ERROR,
+    FINISHED,
 }
 
 pub type ConfigStatusCallback  = unsafe extern "C" fn(obj : *mut c_void) -> ConfigStatus;
